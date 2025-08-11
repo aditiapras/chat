@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AIModel {
+  id           String   @id
+  name         String
+  code         String
+  provider     String
+  supportImage Boolean  @default(false)
+  supportFile  Boolean  @default(false)
+  hasReasoning Boolean  @default(false)
+  isPremium    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+  description  String
+  isActive     Boolean  @default(true)
+}
+
+model Message {
+  id          String   @id
+  content     String
+  role        String
+  model       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  attachments String[]
+  threadId    String?
+  Thread      Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, role, createdAt])
+  @@index([threadId, createdAt])
+}
+
+model Thread {
+  id        String    @id
+  title     String?
+  model     String
+  isPinned  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  userId    String?
+  Message   Message[]
+  User      User?     @relation(fields: [userId], references: [clerkId], onDelete: Cascade)
+
+  @@index([updatedAt])
+  @@index([userId, createdAt])
+}
+
+model User {
+  id        String   @id
+  clerkId   String   @unique
+  firstName String?
+  lastName  String?
+  email     String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  Thread    Thread[]
+}
