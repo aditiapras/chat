@@ -33,9 +33,9 @@ import { useState } from "react";
 import { prisma } from "~/lib/prisma";
 import type { Route } from "./+types/id";
 import { useChat } from "@ai-sdk/react";
-import { Response } from "~/components/ai-elements/response";
 import { Loader } from "~/components/ai-elements/loader";
 import { Actions, Action } from "~/components/ai-elements/actions";
+import { MarkdownRenderer } from "~/components/markdown-renderer";
 
 export async function loader(args: Route.LoaderArgs) {
   const models = await prisma.aIModel.findMany({
@@ -72,10 +72,10 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
                         messageIndex === messages.length - 1;
                       return (
                         <div key={`${message.id}-${i}`}>
-                          <Response>{part.text}</Response>
+                          <MarkdownRenderer content={part.text} />
                           {message.role === "assistant" && isLastMessage && (
                             <Actions className="mt-2">
-                              <Action onClick={() => {}} label="Retry">
+                              <Action onClick={() => { }} label="Retry">
                                 <RefreshCcwIcon className="size-3" />
                               </Action>
                               <Action label="Like">

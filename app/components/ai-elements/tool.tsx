@@ -17,7 +17,7 @@ import {
 } from '~/components/ui/collapsible';
 import { cn } from '~/lib/utils';
 import type { ToolUIPart } from 'ai';
-import { CodeBlock } from './code-block';
+import { CodeBlock } from './code-block_';
 
 export type ToolProps = ComponentProps<typeof Collapsible>;
 

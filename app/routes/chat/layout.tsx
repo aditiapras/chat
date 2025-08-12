@@ -1,16 +1,12 @@
-import { AppSidebar } from "~/components/app-sidebar";
-import {
-    SidebarInset,
-    SidebarProvider,
-    SidebarTrigger,
-} from "~/components/ui/sidebar";
+
 import { Outlet } from "react-router";
 import type { Route } from "./+types/layout";
 import { getAuth } from "@clerk/react-router/ssr.server";
 import { redirect } from "react-router";
 import { ClerkLoading, ClerkLoaded, UserButton } from "@clerk/react-router";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "~/components/ui/sidebar";
+import { AppSidebar } from "~/components/app-sidebar";
 import { Skeleton } from "~/components/ui/skeleton";
-import { ScrollArea } from "~/components/ui/scroll-area";
 
 export async function loader(args: Route.LoaderArgs) {
     const { userId, sessionClaims } = await getAuth(args);
@@ -48,9 +44,7 @@ export default function Page({ loaderData }: Route.ComponentProps) {
                         </ClerkLoaded>
                     </div>
                 </header>
-                {/* <ScrollArea> */}
                 <Outlet />
-                {/* </ScrollArea> */}
             </SidebarInset>
         </SidebarProvider>
     )

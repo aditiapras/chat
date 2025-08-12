@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimized CodeBlock Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .demo-section {
+            margin-bottom: 3rem;
+        }
+
+        .demo-section h2 {
+            margin-bottom: 1rem;
+            color: #58a6ff;
+        }
+
+        /* Optimized CodeBlock Styles */
+        .codeblock-container {
+            border: 1px solid #3e4047;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            background-color: #1e1e1e;
+            font-family: 'Fira Code', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .codeblock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2d2d30;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #cccccc;
+            border-bottom: 1px solid #3e4047;
+        }
+
+        .traffic-lights {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot.red {
+            background-color: #ff5f56;
+        }
+
+        .dot.yellow {
+            background-color: #ffbd2e;
+        }
+
+        .dot.green {
+            background-color: #27ca3f;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 4px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .codeblock-container:hover .header-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+            color: #cccccc;
+        }
+
+        .action-btn:hover {
+            background-color: #404040;
+        }
+
+        .action-btn.copied {
+            color: #28a745;
+        }
+
+        .codeblock-pre {
+            margin: 0;
+            padding: 16px;
+            background-color: #1e1e1e;
+            overflow: auto;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .codeblock-code {
+            font-family: inherit;
+            font-size: inherit;
+            color: #d4d4d4;
+        }
+
+        /* Syntax highlighting */
+        .keyword {
+            color: #569cd6;
+        }
+
+        .string {
+            color: #ce9178;
+        }
+
+        .comment {
+            color: #6a9955;
+        }
+
+        .number {
+            color: #b5cea8;
+        }
+
+        .function {
+            color: #dcdcaa;
+        }
+
+        .operator {
+            color: #d4d4d4;
+        }
+
+        .bracket {
+            color: #ffd700;
+        }
+
+        .property {
+            color: #9cdcfe;
+        }
+
+        .performance-info {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .performance-info h3 {
+            color: #7c3aed;
+            margin-top: 0;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 4px 0;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 Optimized CodeBlock Demo</h1>
+
+        <div class="performance-info">
+            <h3>⚡ Performance Optimizations</h3>
+            <ul class="feature-list">
+                <li><strong>Lightweight Syntax Highlighting</strong> - Custom regex-based highlighter tanpa library
+                    berat</li>
+                <li><strong>Smart Caching</strong> - Cache hasil highlighting untuk menghindari re-computation</li>
+                <li><strong>Memoized Rendering</strong> - React.memo dengan custom comparison</li>
+                <li><strong>Optimized Styles</strong> - Pre-computed styles untuk performa maksimal</li>
+                <li><strong>Minimal Re-renders</strong> - Hanya re-render ketika content benar-benar berubah</li>
+            </ul>
+        </div>
+
+        <div class="demo-section">
+            <h2>JavaScript Example</h2>
+            <div class="codeblock-container">
+                <div class="codeblock-header">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="traffic-lights">
+                            <div class="dot red"></div>
+                            <div class="dot yellow"></div>
+                            <div class="dot green"></div>
+                        </div>
+                        <span style="margin-left: 8px;">javascript</span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="action-btn" onclick="downloadCode(this)" title="Download code">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7,10 12,15 17,10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </button>
+                        <button class="action-btn" onclick="copyCode(this)" title="Copy code">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <pre class="codeblock-pre"><code class="codeblock-code">// Optimized React component with performance monitoring
+<span class="keyword">const</span> <span class="function">OptimizedComponent</span> = <span class="keyword">React</span>.<span class="function">memo</span>((<span class="bracket">{</span> data, onUpdate <span class="bracket">}</span>) => <span class="bracket">{</span>
+  <span class="keyword">const</span> [state, setState] = <span class="function">useState</span>(<span class="string">'initial'</span>);
+  
+  <span class="comment">// Memoized computation untuk performa</span>
+  <span class="keyword">const</span> processedData = <span class="function">useMemo</span>(() => <span class="bracket">{</span>
+    <span class="keyword">return</span> data.<span class="function">map</span>(item => <span class="bracket">{</span>
+      <span class="keyword">return</span> <span class="bracket">{</span>
+        ...item,
+        processed: <span class="keyword">true</span>,
+        timestamp: <span class="keyword">Date</span>.<span class="function">now</span>()
+      <span class="bracket">}</span>;
+    <span class="bracket">}</span>);
+  <span class="bracket">}</span>, [data]);
+  
+  <span class="keyword">return</span> (
+    &lt;<span class="keyword">div</span> className=<span class="string">"optimized-component"</span>&gt;
+      <span class="bracket">{</span>processedData.<span class="function">map</span>(item => (
+        &lt;<span class="keyword">div</span> key=<span class="bracket">{</span>item.id<span class="bracket">}</span>&gt;<span class="bracket">{</span>item.name<span class="bracket">}</span>&lt;/<span class="keyword">div</span>&gt;
+      ))<span class="bracket">}</span>
+    &lt;/<span class="keyword">div</span>&gt;
+  );
+<span class="bracket">}</span>);</code></pre>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>TypeScript Example</h2>
+            <div class="codeblock-container">
+                <div class="codeblock-header">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="traffic-lights">
+                            <div class="dot red"></div>
+                            <div class="dot yellow"></div>
+                            <div class="dot green"></div>
+                        </div>
+                        <span style="margin-left: 8px;">typescript</span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="action-btn" onclick="downloadCode(this)" title="Download code">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7,10 12,15 17,10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </button>
+                        <button class="action-btn" onclick="copyCode(this)" title="Copy code">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <pre class="codeblock-pre"><code class="codeblock-code"><span class="comment">// TypeScript interface untuk type safety</span>
+<span class="keyword">interface</span> <span class="function">CodeBlockProps</span> <span class="bracket">{</span>
+  code: <span class="keyword">string</span>;
+  language?: <span class="keyword">string</span>;
+  theme?: <span class="string">'dark'</span> | <span class="string">'light'</span>;
+  showHeader?: <span class="keyword">boolean</span>;
+  onCopy?: (code: <span class="keyword">string</span>) => <span class="keyword">void</span>;
+<span class="bracket">}</span>
+
+<span class="keyword">const</span> <span class="function">OptimizedCodeBlock</span>: <span class="keyword">React</span>.<span class="function">FC</span>&lt;<span class="function">CodeBlockProps</span>&gt; = <span class="bracket">{</span>
+  code,
+  language = <span class="string">'javascript'</span>,
+  theme = <span class="string">'dark'</span>,
+  showHeader = <span class="keyword">true</span>,
+  onCopy
+<span class="bracket">}</span> => <span class="bracket">{</span>
+  <span class="keyword">const</span> [copied, setCopied] = <span class="function">useState</span>&lt;<span class="keyword">boolean</span>&gt;(<span class="keyword">false</span>);
+  
+  <span class="keyword">const</span> <span class="function">handleCopy</span> = <span class="keyword">useCallback</span>(<span class="keyword">async</span> () => <span class="bracket">{</span>
+    <span class="keyword">try</span> <span class="bracket">{</span>
+      <span class="keyword">await</span> navigator.clipboard.<span class="function">writeText</span>(code);
+      <span class="function">setCopied</span>(<span class="keyword">true</span>);
+      onCopy?.(code);
+      <span class="function">setTimeout</span>(() => <span class="function">setCopied</span>(<span class="keyword">false</span>), <span class="number">2000</span>);
+    <span class="bracket">}</span> <span class="keyword">catch</span> (err) <span class="bracket">{</span>
+      console.<span class="function">error</span>(<span class="string">'Copy failed:'</span>, err);
+    <span class="bracket">}</span>
+  <span class="bracket">}</span>, [code, onCopy]);
+  
+  <span class="keyword">return</span> <span class="comment">/* JSX */</span>;
+<span class="bracket">}</span>;</code></pre>
+            </div>
+        </div>
+
+        <div class="performance-info">
+            <h3>🎯 Key Features</h3>
+            <ul class="feature-list">
+                <li><strong>VS Code Style UI</strong> - Professional appearance dengan traffic light buttons</li>
+                <li><strong>Copy & Download</strong> - Built-in functionality dengan visual feedback</li>
+                <li><strong>Multi-language Support</strong> - JavaScript, TypeScript, Python, Java, C++, dan lainnya
+                </li>
+                <li><strong>Theme Support</strong> - Dark dan light theme</li>
+                <li><strong>Hover Effects</strong> - Interactive UI elements</li>
+                <li><strong>Responsive Design</strong> - Optimal di semua device sizes</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.closest('.codeblock-container').querySelector('.codeblock-code');
+            const code = codeBlock.textContent;
+
+            navigator.clipboard.writeText(code).then(() => {
+                const originalHTML = button.innerHTML;
+                button.classList.add('copied');
+                button.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20,6 9,17 4,12"></polyline>
+                </svg>`;
+
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.innerHTML = originalHTML;
+                }, 2000);
+            });
+        }
+
+        function downloadCode(button) {
+            const codeBlock = button.closest('.codeblock-container').querySelector('.codeblock-code');
+            const code = codeBlock.textContent;
+            const language = button.closest('.codeblock-container').querySelector('.codeblock-header span').textContent;
+
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `code.${language}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+
+</html>

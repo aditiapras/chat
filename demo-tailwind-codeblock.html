@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tailwind Optimized CodeBlock Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom syntax highlighting colors */
+        .text-keyword {
+            color: #569cd6;
+        }
+
+        .text-string {
+            color: #ce9178;
+        }
+
+        .text-comment {
+            color: #6a9955;
+        }
+
+        .text-number {
+            color: #b5cea8;
+        }
+
+        .text-function {
+            color: #dcdcaa;
+        }
+
+        .text-operator {
+            color: #d4d4d4;
+        }
+
+        .text-bracket {
+            color: #ffd700;
+        }
+
+        .text-property {
+            color: #9cdcfe;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-gray-100 font-sans">
+    <div class="max-w-4xl mx-auto p-5">
+        <h1 class="text-4xl font-bold text-center mb-8">🚀 Tailwind Optimized CodeBlock</h1>
+
+        <!-- Performance Info -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-8">
+            <h3 class="text-2xl font-bold text-purple-400 mb-4">⚡ Performance & Styling Optimizations</h3>
+            <ul class="space-y-2">
+                <li class="flex items-start">
+                    <span class="text-green-400 font-bold mr-3">✓</span>
+                    <div>
+                        <strong class="text-white">Tailwind CSS Styling</strong> - Mudah dikustomisasi dengan utility
+                        classes
+                    </div>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-400 font-bold mr-3">✓</span>
+                    <div>
+                        <strong class="text-white">Lightweight Syntax Highlighting</strong> - Custom regex-based
+                        highlighter tanpa library berat
+                    </div>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-400 font-bold mr-3">✓</span>
+                    <div>
+                        <strong class="text-white">Smart Caching</strong> - Cache hasil highlighting untuk menghindari
+                        re-computation
+                    </div>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-400 font-bold mr-3">✓</span>
+                    <div>
+                        <strong class="text-white">Responsive Design</strong> - Menggunakan Tailwind responsive
+                        utilities
+                    </div>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-400 font-bold mr-3">✓</span>
+                    <div>
+                        <strong class="text-white">Easy Customization</strong> - Semua styling menggunakan Tailwind
+                        classes
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- JavaScript Example -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-blue-400 mb-4">JavaScript Example</h2>
+            <div
+                class="rounded-lg overflow-hidden mb-4 font-mono text-sm leading-relaxed border border-gray-700 bg-gray-900">
+                <!-- Header -->
+                <div
+                    class="flex justify-between items-center px-3 py-2 text-xs font-semibold border-b bg-gray-800 text-gray-300 border-gray-700">
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <span class="ml-2 font-medium">javascript</span>
+                    </div>
+                    <div class="flex gap-1 opacity-70 hover:opacity-100 transition-opacity duration-200">
+                        <button
+                            class="p-1 rounded transition-colors duration-200 text-gray-400 hover:bg-gray-700 hover:text-gray-200"
+                            onclick="downloadCode(this, 'js')" title="Download code">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7,10 12,15 17,10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </button>
+                        <button
+                            class="p-1 rounded transition-colors duration-200 text-gray-400 hover:bg-gray-700 hover:text-gray-200"
+                            onclick="copyCode(this)" title="Copy code">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Code Content -->
+                <div class="relative">
+                    <pre class="m-0 p-4 overflow-auto text-sm leading-relaxed bg-gray-900"><code class="font-mono text-sm text-gray-300">// Optimized React component with Tailwind CSS
+<span class="text-keyword">const</span> <span class="text-function">OptimizedComponent</span> = <span class="text-keyword">React</span>.<span class="text-function">memo</span>((<span class="text-bracket">{</span> data, onUpdate <span class="text-bracket">}</span>) => <span class="text-bracket">{</span>
+  <span class="text-keyword">const</span> [state, setState] = <span class="text-function">useState</span>(<span class="text-string">'initial'</span>);
+  
+  <span class="text-comment">// Memoized computation untuk performa maksimal</span>
+  <span class="text-keyword">const</span> processedData = <span class="text-function">useMemo</span>(() => <span class="text-bracket">{</span>
+    <span class="text-keyword">return</span> data.<span class="text-function">map</span>(item => <span class="text-bracket">({</span>
+      ...item,
+      processed: <span class="text-keyword">true</span>,
+      timestamp: <span class="text-keyword">Date</span>.<span class="text-function">now</span>(),
+      className: <span class="text-string">"bg-gray-800 p-4 rounded-lg"</span>
+    <span class="text-bracket">}</span>));
+  <span class="text-bracket">}</span>, [data]);
+  
+  <span class="text-keyword">return</span> (
+    &lt;<span class="text-keyword">div</span> className=<span class="text-string">"max-w-4xl mx-auto p-6"</span>&gt;
+      <span class="text-bracket">{</span>processedData.<span class="text-function">map</span>(item => (
+        &lt;<span class="text-keyword">div</span> 
+          key=<span class="text-bracket">{</span>item.id<span class="text-bracket">}</span> 
+          className=<span class="text-string">"bg-gray-700 p-3 rounded mb-2"</span>
+        &gt;
+          <span class="text-bracket">{</span>item.name<span class="text-bracket">}</span>
+        &lt;/<span class="text-keyword">div</span>&gt;
+      ))<span class="text-bracket">}</span>
+    &lt;/<span class="text-keyword">div</span>&gt;
+  );
+<span class="text-bracket">}</span>);</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- TypeScript Example -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-blue-400 mb-4">TypeScript Example</h2>
+            <div
+                class="rounded-lg overflow-hidden mb-4 font-mono text-sm leading-relaxed border border-gray-700 bg-gray-900">
+                <!-- Header -->
+                <div
+                    class="flex justify-between items-center px-3 py-2 text-xs font-semibold border-b bg-gray-800 text-gray-300 border-gray-700">
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <span class="ml-2 font-medium">typescript</span>
+                    </div>
+                    <div class="flex gap-1 opacity-70 hover:opacity-100 transition-opacity duration-200">
+                        <button
+                            class="p-1 rounded transition-colors duration-200 text-gray-400 hover:bg-gray-700 hover:text-gray-200"
+                            onclick="downloadCode(this, 'ts')" title="Download code">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7,10 12,15 17,10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </button>
+                        <button
+                            class="p-1 rounded transition-colors duration-200 text-gray-400 hover:bg-gray-700 hover:text-gray-200"
+                            onclick="copyCode(this)" title="Copy code">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Code Content -->
+                <div class="relative">
+                    <pre class="m-0 p-4 overflow-auto text-sm leading-relaxed bg-gray-900"><code class="font-mono text-sm text-gray-300"><span class="text-comment">// TypeScript interface dengan Tailwind CSS classes</span>
+<span class="text-keyword">interface</span> <span class="text-function">OptimizedCodeBlockProps</span> <span class="text-bracket">{</span>
+  code: <span class="text-keyword">string</span>;
+  language?: <span class="text-keyword">string</span>;
+  theme?: <span class="text-string">'dark'</span> | <span class="text-string">'light'</span>;
+  showHeader?: <span class="text-keyword">boolean</span>;
+  className?: <span class="text-keyword">string</span>; <span class="text-comment">// Tailwind classes</span>
+<span class="text-bracket">}</span>
+
+<span class="text-keyword">const</span> <span class="text-function">OptimizedCodeBlock</span>: <span class="text-keyword">React</span>.<span class="text-function">FC</span>&lt;<span class="text-function">OptimizedCodeBlockProps</span>&gt; = <span class="text-bracket">({</span>
+  code,
+  language = <span class="text-string">'javascript'</span>,
+  theme = <span class="text-string">'dark'</span>,
+  showHeader = <span class="text-keyword">true</span>,
+  className
+<span class="text-bracket">}</span>) => <span class="text-bracket">{</span>
+  <span class="text-keyword">const</span> [copied, setCopied] = <span class="text-function">useState</span>&lt;<span class="text-keyword">boolean</span>&gt;(<span class="text-keyword">false</span>);
+  
+  <span class="text-keyword">return</span> (
+    &lt;<span class="text-keyword">div</span> 
+      className=<span class="text-bracket">{</span><span class="text-function">cn</span>(
+        <span class="text-string">"rounded-lg overflow-hidden mb-4"</span>,
+        <span class="text-string">"font-mono text-sm leading-relaxed"</span>,
+        theme === <span class="text-string">'dark'</span> 
+          ? <span class="text-string">"border border-gray-700 bg-gray-900"</span>
+          : <span class="text-string">"border border-gray-200 bg-gray-50"</span>,
+        className
+      )<span class="text-bracket">}</span>
+    &gt;
+      <span class="text-comment">/* Component content */</span>
+    &lt;/<span class="text-keyword">div</span>&gt;
+  );
+<span class="text-bracket">}</span>;</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customization Guide -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-8">
+            <h3 class="text-2xl font-bold text-green-400 mb-4">🎨 Easy Customization dengan Tailwind</h3>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="text-lg font-semibold text-white mb-2">Mengubah Warna Theme:</h4>
+                    <pre class="bg-gray-900 p-3 rounded text-sm"><code class="text-gray-300">// Dark theme
+className="border border-gray-700 bg-gray-900"
+
+// Light theme  
+className="border border-gray-200 bg-gray-50"
+
+// Custom theme
+className="border border-blue-500 bg-blue-900"</code></pre>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold text-white mb-2">Mengubah Ukuran dan Spacing:</h4>
+                    <pre class="bg-gray-900 p-3 rounded text-sm"><code class="text-gray-300">// Compact size
+className="text-xs p-2 mb-2"
+
+// Large size
+className="text-base p-6 mb-6"
+
+// Custom spacing
+className="px-8 py-4 mx-4 my-8"</code></pre>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold text-white mb-2">Mengubah Font dan Typography:</h4>
+                    <pre class="bg-gray-900 p-3 rounded text-sm"><code class="text-gray-300">// Different font families
+className="font-mono"     // Monospace (default)
+className="font-sans"     // Sans-serif
+className="font-serif"    // Serif
+
+// Font weights and sizes
+className="font-light text-sm"
+className="font-bold text-lg"</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <h3 class="text-2xl font-bold text-purple-400 mb-4">🎯 Key Features</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <ul class="space-y-2">
+                    <li class="flex items-start">
+                        <span class="text-green-400 font-bold mr-3">✓</span>
+                        <div>
+                            <strong class="text-white">Tailwind CSS</strong> - Utility-first styling
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-green-400 font-bold mr-3">✓</span>
+                        <div>
+                            <strong class="text-white">VS Code Style UI</strong> - Professional appearance
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-green-400 font-bold mr-3">✓</span>
+                        <div>
+                            <strong class="text-white">Copy & Download</strong> - Built-in functionality
+                        </div>
+                    </li>
+                </ul>
+                <ul class="space-y-2">
+                    <li class="flex items-start">
+                        <span class="text-green-400 font-bold mr-3">✓</span>
+                        <div>
+                            <strong class="text-white">Multi-language Support</strong> - 10+ languages
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-green-400 font-bold mr-3">✓</span>
+                        <div>
+                            <strong class="text-white">Responsive Design</strong> - Mobile-friendly
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-green-400 font-bold mr-3">✓</span>
+                        <div>
+                            <strong class="text-white">High Performance</strong> - Optimized rendering
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.closest('.rounded-lg').querySelector('code');
+            const code = codeBlock.textContent;
+
+            navigator.clipboard.writeText(code).then(() => {
+                const originalHTML = button.innerHTML;
+                button.classList.add('text-green-500');
+                button.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20,6 9,17 4,12"></polyline>
+                </svg>`;
+
+                setTimeout(() => {
+                    button.classList.remove('text-green-500');
+                    button.innerHTML = originalHTML;
+                }, 2000);
+            });
+        }
+
+        function downloadCode(button, extension) {
+            const codeBlock = button.closest('.rounded-lg').querySelector('code');
+            const code = codeBlock.textContent;
+
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `code.${extension}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+
+</html>
