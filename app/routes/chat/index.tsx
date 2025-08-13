@@ -2,16 +2,14 @@ import type { Route } from "./+types/index"
 import { Textarea } from "~/components/ui/textarea";
 import { Send } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { Form } from "react-router";
+import { Form, redirect, useNavigate } from "react-router";
 import { Paperclip, GlobeIcon } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "~/components/ui/select";
 import { getAuth } from "@clerk/react-router/ssr.server";
 import { prisma } from "~/lib/prisma";
 import * as React from "react"
-import { useChat } from "@ai-sdk/react"
 import { Suggestion, Suggestions } from '~/components/ai-elements/suggestion';
-
 
 export const meta: Route.MetaFunction = () => {
     return [
@@ -26,28 +24,62 @@ export async function loader(args: Route.LoaderArgs) {
     const model = await prisma.aIModel.findMany({
         select: {
             name: true,
-            code: true,
+            modelId: true,
+            supportWebSearch: true
+        },
+        orderBy: {
+            provider: "asc"
         }
     })
     return { sessionClaims, model }
 }
 
+
+
 export default function Page({ loaderData }: Route.ComponentProps) {
     const [prompt, setPrompt] = React.useState("")
-    const [model, setModel] = React.useState(loaderData.model[0].code)
+    const [model, setModel] = React.useState(loaderData.model[0].modelId)
+    const [webSearch, setWebSearch] = React.useState(false)
+    const navigate = useNavigate()
 
-    const { sendMessage } = useChat()
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        sendMessage({
-            text: prompt
-        }, {
-            body: {
-                model
+        const data = new FormData(e.currentTarget)
+        data.set("webSearch", webSearch.toString())
+
+        try {
+            const create = await fetch("/api/thread", {
+                method: "POST",
+                body: JSON.stringify({
+                    model,
+                })
+            })
+            if (create.ok) {
+                const { threadId } = await create.json()
+                navigate(`/chat/${threadId}`, {
+                    state: {
+                        prompt: prompt,
+                        model: model,
+                        webSearch: webSearch,
+                        autoSubmit: true
+                    }
+                })
             }
-        })
+        } catch (error) {
+            console.log(error)
+        }
         setPrompt("")
+        setWebSearch(false)
+    }
+
+    const handleKeyDown = async (e: React.KeyboardEvent<HTMLFormElement>) => {
+        if (e.key === "Enter") {
+            handleSubmit(e)
+        }
+        if (e.key === "Enter" && e.shiftKey) {
+            setPrompt(prompt + "\n")
+        }
     }
 
     return (
@@ -65,7 +97,7 @@ export default function Page({ loaderData }: Route.ComponentProps) {
                     <Suggestion suggestion="What are the best AI tools for beginners?" />
                 </Suggestions>
                 <div className="p-2 border border-muted rounded-xl w-full bg-muted/50 text-foreground">
-                    <Form method="post" onSubmit={handleSubmit} className="border border-muted p-2 rounded-md bg-background flex flex-col gap-2">
+                    <Form method="post" onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="border border-muted p-2 rounded-md bg-background flex flex-col gap-2">
                         <Textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} name="prompt" placeholder="Ask me anything..." className="text-lg border-none shadow-none resize-none focus:ring-0 focus-visible:ring-0" />
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1">
@@ -75,7 +107,7 @@ export default function Page({ loaderData }: Route.ComponentProps) {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {loaderData.model.map((model) => (
-                                            <SelectItem key={model.code} value={model.code}>{model.name}</SelectItem>
+                                            <SelectItem key={model.modelId} value={model.modelId}>{model.name}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -89,7 +121,14 @@ export default function Page({ loaderData }: Route.ComponentProps) {
                                 </Tooltip>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button type="button" variant="outline" size="icon" className="rounded-full"><GlobeIcon /></Button>
+                                        <Button
+                                            onClick={() => setWebSearch(!webSearch)}
+                                            // disabled={!loaderData.model.find(m => m.modelId === model)?.supportWebSearch}
+                                            type="button"
+                                            variant={webSearch ? "default" : "outline"}
+                                            size="icon"
+                                            className="rounded-full"
+                                        ><GlobeIcon /></Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
                                         <p>Web search</p>

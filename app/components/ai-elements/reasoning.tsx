@@ -10,7 +10,7 @@ import { BrainIcon, ChevronDownIcon } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { createContext, memo, useContext, useEffect, useState } from 'react';
 import { cn } from '~/lib/utils';
-import { MarkdownRenderer } from '../markdown-renderer';
+import { ReasoningResponse } from './reasoning-response';
 
 type ReasoningContextValue = {
   isStreaming: boolean;
@@ -168,7 +168,7 @@ export const ReasoningContent = memo(
       )}
       {...props}
     >
-      <MarkdownRenderer className="grid gap-2" content={children} />
+      <ReasoningResponse className="grid gap-2">{children}</ReasoningResponse>
     </CollapsibleContent>
   ),
 );

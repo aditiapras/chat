@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  // output   = "../generated/prisma"
 }
 
 datasource db {
@@ -9,44 +8,45 @@ datasource db {
 }
 
 model AIModel {
-  id           String   @id
-  name         String
-  code         String
-  provider     String
-  supportImage Boolean  @default(false)
-  supportFile  Boolean  @default(false)
-  hasReasoning Boolean  @default(false)
-  isPremium    Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime
-  description  String
-  isActive     Boolean  @default(true)
+  id               String   @id @default(uuid())
+  modelId          String
+  name             String
+  provider         String
+  supportImage     Boolean  @default(false)
+  supportFile      Boolean  @default(false)
+  supportWebSearch Boolean  @default(false)
+  hasReasoning     Boolean  @default(false)
+  isPremium        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  description      String?
+  isActive         Boolean  @default(true)
 }
 
 model Message {
-  id          String   @id
+  id          String   @id @default(uuid())
   content     String
   role        String
   model       String
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   attachments String[]
   threadId    String?
   Thread      Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
 
-  @@unique([threadId, role, createdAt])
+  @@unique([threadId, role, createdAt], name: "unique_message")
   @@index([threadId, createdAt])
 }
 
 model Thread {
-  id        String    @id
+  id        String    @id @default(uuid())
   title     String?
   model     String
   isPinned  Boolean   @default(false)
   createdAt DateTime  @default(now())
-  updatedAt DateTime
-  userId    String?
+  updatedAt DateTime  @updatedAt
   Message   Message[]
+  userId    String?
   User      User?     @relation(fields: [userId], references: [clerkId], onDelete: Cascade)
 
   @@index([updatedAt])
@@ -54,13 +54,13 @@ model Thread {
 }
 
 model User {
-  id        String   @id
+  id        String   @id @default(uuid())
   clerkId   String   @unique
   firstName String?
   lastName  String?
   email     String?
   imageUrl  String?
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   Thread    Thread[]
 }

@@ -1,14 +1,10 @@
 import * as React from "react"
 import {
-  BookOpen,
-  Bot,
   Frame,
-  LifeBuoy,
   Map,
   PieChart,
-  Send,
   Settings2,
-  SquareTerminal,
+
   MessageCircle,
 } from "lucide-react"
 import { NavProjects } from "~/components/nav-projects"
@@ -23,29 +19,10 @@ import {
   SidebarRail,
 } from "~/components/ui/sidebar"
 import { Link } from "react-router"
-
-const data = {
-
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
-}
+import { useLoaderData } from "react-router"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { threads } = useLoaderData()
   return (
     <Sidebar collapsible="icon" {...props} className="">
       <SidebarHeader>
@@ -65,7 +42,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavProjects projects={data.projects} />
+        <NavProjects threads={threads} />
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

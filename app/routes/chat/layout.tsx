@@ -7,6 +7,7 @@ import { ClerkLoading, ClerkLoaded, UserButton } from "@clerk/react-router";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "~/components/ui/sidebar";
 import { AppSidebar } from "~/components/app-sidebar";
 import { Skeleton } from "~/components/ui/skeleton";
+import { prisma } from "~/lib/prisma";
 
 export async function loader(args: Route.LoaderArgs) {
     const { userId, sessionClaims } = await getAuth(args);
@@ -14,6 +15,16 @@ export async function loader(args: Route.LoaderArgs) {
     if (!userId) {
         return redirect("/sign-in");
     }
+    const threads = await prisma.thread.findMany({
+        where: {
+            userId,
+        },
+        select: {
+            id: true,
+            title: true,
+            model: true,
+        },
+    })
     return {
         userId,
         sessionClaims: {
@@ -22,7 +33,9 @@ export async function loader(args: Route.LoaderArgs) {
             firstName: sessionClaims.firstName as string,
             email: sessionClaims.email as string,
         },
+        threads,
     };
+
 }
 
 export default function Page({ loaderData }: Route.ComponentProps) {

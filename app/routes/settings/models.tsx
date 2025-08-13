@@ -21,7 +21,7 @@ import {
 import { Textarea } from "~/components/ui/textarea"
 import { prisma } from "~/lib/prisma"
 import { redirect } from "react-router"
-import type { Route } from "./+types/model"
+import type { Route } from "./+types/models"
 
 export const meta: Route.MetaFunction = () => {
     return [
@@ -49,7 +49,7 @@ export const action = async ({ request }: { request: Request }) => {
         await prisma.aIModel.create({
             data: {
                 name: model as string,
-                code: code as string,
+                modelId: code as string,
                 description: description as string,
                 provider: provider as string,
                 supportImage: supportImage === "on" ? true : false,
@@ -60,17 +60,22 @@ export const action = async ({ request }: { request: Request }) => {
         })
     } catch (error) {
         console.log(error)
-        return redirect("/settings/model")
+        return redirect("/settings/models")
     }
 }
 
 export const loader = async () => {
-    const models = await prisma.aIModel.findMany()
-    return models
+    const models = await prisma.aIModel.findMany({
+        orderBy: {
+            provider: "asc"
+        }
+    })
+    return { models }
 }
 
 export default function Model({ loaderData }: Route.ComponentProps) {
     const fetcher = useFetcher()
+    const models = loaderData.models
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -139,7 +144,7 @@ export default function Model({ loaderData }: Route.ComponentProps) {
                 </AlertDialog>
             </div>
             <div className="grid grid-cols-2 gap-4">
-                {loaderData.map((model) => (
+                {models?.map((model) => (
                     <Card key={model.id}>
                         <CardHeader>
                             <div className="flex items-center justify-between">

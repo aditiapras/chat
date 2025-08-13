@@ -35,11 +35,7 @@ export const action = async ({ request }: Route.ActionArgs) => {
       }
 
       if(eventType === "user.deleted"){
-        await prisma.user.delete({
-          where:{
-            clerkId:id!,
-          }
-        })
+       console.log("User deleted", { id, eventType, success: true, status: 200 });
       }
       console.log("Webhook received", { id, eventType, success: true, status: 200 });
       return new Response("Webhook received", { status: 200 });

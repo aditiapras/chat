@@ -5,6 +5,7 @@ import {
   Trash2,
   type LucideIcon,
 } from "lucide-react"
+import { Link } from "react-router"
 
 import {
   DropdownMenu,
@@ -24,12 +25,11 @@ import {
 } from "~/components/ui/sidebar"
 
 export function NavProjects({
-  projects,
+  threads,
 }: {
-  projects: {
-    name: string
-    url: string
-    icon: LucideIcon
+  threads: {
+    id: string
+    title: string
   }[]
 }) {
   const { isMobile } = useSidebar()
@@ -38,13 +38,12 @@ export function NavProjects({
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>Projects</SidebarGroupLabel>
       <SidebarMenu>
-        {projects.map((item) => (
-          <SidebarMenuItem key={item.name}>
+        {threads.map((item) => (
+          <SidebarMenuItem key={item.id}>
             <SidebarMenuButton asChild>
-              <a href={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
-              </a>
+              <Link to={`/chat/${item.id}`}>
+                <span>{item.title}</span>
+              </Link>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -75,12 +74,6 @@ export function NavProjects({
             </DropdownMenu>
           </SidebarMenuItem>
         ))}
-        <SidebarMenuItem>
-          <SidebarMenuButton>
-            <MoreHorizontal />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
   )
