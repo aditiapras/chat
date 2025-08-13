@@ -1,13 +1,6 @@
-import * as React from "react"
-import {
-  Frame,
-  Map,
-  PieChart,
-  Settings2,
-
-  MessageCircle,
-} from "lucide-react"
-import { NavProjects } from "~/components/nav-projects"
+import * as React from "react";
+import { Frame, Map, PieChart, Settings2, MessageCircle } from "lucide-react";
+import { NavProjects } from "~/components/nav-projects";
 import {
   Sidebar,
   SidebarContent,
@@ -17,12 +10,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "~/components/ui/sidebar"
-import { Link } from "react-router"
-import { useLoaderData } from "react-router"
+} from "~/components/ui/sidebar";
+import { Link } from "react-router";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { threads } = useLoaderData()
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  threads: {
+    id: string;
+    title: string | null;
+    model: string;
+  }[];
+}
+
+export function AppSidebar({ threads, ...props }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon" {...props} className="">
       <SidebarHeader>
@@ -60,5 +59,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

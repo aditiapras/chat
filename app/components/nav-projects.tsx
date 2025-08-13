@@ -1,11 +1,14 @@
 import {
   Folder,
   MoreHorizontal,
+  Pin,
   Share,
+  TextCursor,
   Trash2,
+  Loader2,
   type LucideIcon,
-} from "lucide-react"
-import { Link } from "react-router"
+} from "lucide-react";
+import { Link } from "react-router";
 
 import {
   DropdownMenu,
@@ -13,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu"
+} from "~/components/ui/dropdown-menu";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -22,29 +25,45 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "~/components/ui/sidebar"
+} from "~/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 export function NavProjects({
   threads,
 }: {
   threads: {
-    id: string
-    title: string
-  }[]
+    id: string;
+    title: string | null;
+    isGeneratingTitle?: boolean;
+  }[];
 }) {
-  const { isMobile } = useSidebar()
+  const { isMobile } = useSidebar();
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
+      <SidebarGroupLabel>Threads</SidebarGroupLabel>
       <SidebarMenu>
         {threads.map((item) => (
           <SidebarMenuItem key={item.id}>
-            <SidebarMenuButton asChild>
-              <Link to={`/chat/${item.id}`}>
-                <span>{item.title}</span>
-              </Link>
-            </SidebarMenuButton>
+            <Tooltip>
+              <SidebarMenuButton asChild>
+                <TooltipTrigger asChild>
+                  <Link to={`/chat/${item.id}`}>
+                    <div className="flex items-center gap-2 truncate">
+                      {(!item.title || item.isGeneratingTitle) && (
+                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                      )}
+                      <span
+                        className={!item.title ? "text-muted-foreground" : ""}
+                      >
+                        {item.title || "Generating..."}
+                      </span>
+                    </div>
+                  </Link>
+                </TooltipTrigger>
+              </SidebarMenuButton>
+              <TooltipContent align="start">{item.title}</TooltipContent>
+            </Tooltip>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuAction showOnHover>
@@ -58,17 +77,17 @@ export function NavProjects({
                 align={isMobile ? "end" : "start"}
               >
                 <DropdownMenuItem>
-                  <Folder className="text-muted-foreground" />
-                  <span>View Project</span>
+                  <Pin className="text-muted-foreground" />
+                  <span>Pin Thread</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Share className="text-muted-foreground" />
-                  <span>Share Project</span>
+                  <TextCursor className="text-muted-foreground" />
+                  <span>Rename Thread</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <Trash2 className="text-muted-foreground" />
-                  <span>Delete Project</span>
+                  <span>Delete Thread</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -76,5 +95,5 @@ export function NavProjects({
         ))}
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }
