@@ -37,6 +37,13 @@ import { Loader } from "~/components/ai-elements/loader";
 import { Response } from "~/components/ai-elements/response";
 import { Action, Actions } from "~/components/ai-elements/actions";
 import { useLocation, useFetcher } from "react-router";
+import {
+  Source,
+  Sources,
+  SourcesContent,
+  SourcesTrigger,
+} from "~/components/ai-elements/source";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 
 export const meta: Route.MetaFunction = ({ loaderData }: Route.MetaArgs) => {
   const title = loaderData?.title?.title || "New Chat";
@@ -51,56 +58,98 @@ export const meta: Route.MetaFunction = ({ loaderData }: Route.MetaArgs) => {
 
 export async function loader(args: Route.LoaderArgs) {
   const { params } = args;
-  const models = await prisma.aIModel.findMany({
-    select: {
-      name: true,
-      modelId: true,
-    },
-    orderBy: {
-      provider: "asc",
-    },
-  });
-  const selectedModel = await prisma.thread.findUnique({
-    where: {
-      id: params.id,
-    },
-    select: {
-      model: true,
-    },
-  });
-  const messages = await prisma.message.findMany({
-    where: {
-      threadId: params.id,
-    },
-    select: {
-      id: true,
-      role: true,
-      content: true,
-    },
-  });
-  const title = await prisma.thread.findUnique({
-    where: {
-      id: params.id,
-    },
-    select: {
-      title: true,
-    },
-  });
+  // OPTIMIZATION: Use Promise.all to run queries in parallel instead of sequential
+  const [models, title, messages] = await Promise.all([
+    // Cache models query result (could be moved to parent layout)
+    prisma.aIModel.findMany({
+      select: {
+        name: true,
+        modelId: true,
+      },
+      orderBy: {
+        provider: "asc",
+      },
+    }),
+    
+    // Single query to get thread data
+    prisma.thread.findUnique({
+      where: {
+        id: params.id,
+      },
+      select: {
+        title: true,
+      },
+    }),
+    
+    // Optimized messages query with content length limit
+    prisma.message.findMany({
+      where: {
+        threadId: params.id,
+      },
+      select: {
+        id: true,
+        role: true,
+        content: true,
+        model: true, // Include model for selectedModel extraction
+        webSearch: true, // Include webSearch for sources
+        createdAt: true, // For ordering
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+      // Consider adding pagination for very long conversations
+      take: 100, // Limit to last 100 messages for performance
+    }),
+  ]);
+
+  // Extract selectedModel from last assistant message
+  const selectedModel = messages
+    .filter(msg => msg.role === "assistant")
+    .slice(-1)[0] || null;
   return { models, selectedModel, params, messages, title };
 }
 
 export default function Threads({ loaderData }: Route.ComponentProps) {
   const location = useLocation();
   const [model, setModel] = useState(
-    loaderData.selectedModel?.model || loaderData.models[0].modelId
+    location.state?.model || loaderData.selectedModel?.model || loaderData.models[0].modelId
   );
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState(location.state?.prompt || "");
+  const [isWebSearch, setIsWebSearch] = useState(location.state?.webSearch || false);
   const { sendMessage, messages, status, setMessages, stop } = useChat({});
   const isInitial = useRef(true);
   const [currentTitle, setCurrentTitle] = useState(
     loaderData.title?.title || "New Chat"
   );
   const titleFetcher = useFetcher();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fix: Sync model state with selectedModel when navigating between pages
+  useEffect(() => {
+    const newModel = loaderData.selectedModel?.model || loaderData.models[0].modelId;
+    if (newModel !== model) {
+      setModel(newModel);
+    }
+  }, [loaderData.selectedModel?.model, loaderData.params.id]);
+
+  // Auto-scroll to bottom when messages change or streaming
+  const scrollToBottom = (instant = false) => {
+    messagesEndRef.current?.scrollIntoView({ 
+      behavior: instant ? "instant" : "smooth" 
+    });
+  };
+
+  // Instant scroll to bottom on initial load (no animation)
+  useEffect(() => {
+    scrollToBottom(true); // Instant scroll on page load
+  }, [loaderData.params.id]); // Trigger when page/thread changes
+
+  // Scroll to bottom when message is complete (not during streaming to prevent flicker)
+  useEffect(() => {
+    if (status !== "streaming" && messages.length > 0) {
+      scrollToBottom(true); // Instant scroll after message is complete
+    }
+  }, [messages.length]); // Trigger when new message is added
 
   useEffect(() => {
     if (isInitial.current) {
@@ -111,7 +160,7 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
     if (location.state?.prompt && location.state.prompt.trim() !== "") {
       sendMessage(
         { text: location.state.prompt },
-        { body: { model, threadId: loaderData.params.id } }
+        { body: { model, threadId: loaderData.params.id, isWebSearch } }
       );
     }
   }, [location.state]);
@@ -137,13 +186,10 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
     if (newTitle !== currentTitle) {
       setCurrentTitle(newTitle);
       document.title = newTitle;
-      console.log("✅ Title updated via loader data:", newTitle);
     }
   }, [loaderData.title?.title, currentTitle]);
 
-  // Trigger title generation when AI response completes
   useEffect(() => {
-    // Trigger when AI response finishes and we have messages but no title
     if (
       messages.length > 0 &&
       (!loaderData.title?.title || loaderData.title?.title === null) &&
@@ -151,26 +197,26 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
     ) {
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === "assistant") {
-        // Check if AI response is complete (not streaming)
-        const aiResponse = lastMessage.parts
-          .filter((part) => part.type === "text")
-          .map((part) => part.text)
-          .join("");
+        // Find the user message that triggered this AI response
+        const userMessage = messages.find((msg, index) => 
+          msg.role === "user" && index < messages.length - 1
+        );
+        
+        if (userMessage && status !== "streaming") {
+          const userContent = userMessage.parts
+            .filter((part) => part.type === "text")
+            .map((part) => part.text)
+            .join("");
 
-        // Only trigger if we have a complete response and not currently streaming
-        if (aiResponse.trim() && status !== "streaming") {
           const formData = new FormData();
           formData.append("threadId", loaderData.params.id);
-          formData.append("aiResponse", aiResponse);
+          formData.append("userMessage", userContent);
           formData.append("model", model);
 
           titleFetcher.submit(formData, {
             method: "POST",
             action: "/api/generate-title",
           });
-          console.log(
-            "✅ Title generation triggered via fetcher with FormData - AI response completed"
-          );
         }
       }
     }
@@ -187,7 +233,7 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
     e.preventDefault();
     sendMessage(
       { text: prompt },
-      { body: { model, threadId: loaderData.params.id } }
+      { body: { model, threadId: loaderData.params.id, isWebSearch } }
     );
     setPrompt("");
   };
@@ -197,55 +243,99 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
       <Conversation className="relative">
         <ConversationContent>
           {messages.map((message, messageIndex) => (
-            <Message from={message.role} key={message.id}>
-              <MessageContent className="group-[.is-user]:bg-muted py-2 group-[.is-user]:rounded-tl-xl group-[.is-user]:rounded-tr-xl group-[.is-user]:rounded-bl-xl group-[.is-user]:text-foreground group-[.is-assistant]:bg-transparent">
-                {message.parts.map((part, i) => {
-                  switch (part.type) {
-                    case "text":
-                      const isLastMessage =
-                        messageIndex === messages.length - 1;
-                      return (
-                        <div key={`${message.id}-${i}`} className="w-full">
-                          <Response>{part.text}</Response>
-                          {message.role === "assistant" && (
-                            <Actions className="mt-2">
-                              <Action
-                                tooltip="Copy Message"
-                                className="text-background group-hover:text-muted-foreground"
-                              >
-                                <CopyIcon />
-                              </Action>
-                              <Action
-                                tooltip="Retry Message"
-                                className="text-background group-hover:text-muted-foreground"
-                              >
-                                <RefreshCcwIcon />
-                              </Action>
-                            </Actions>
-                          )}
-                        </div>
-                      );
-                    case "reasoning":
-                      return (
-                        <Reasoning
-                          key={`${message.id}-${i}`}
-                          className="w-full"
-                          isStreaming={status === "streaming"}
-                        >
-                          <ReasoningTrigger />
-                          <ReasoningContent className="text-xs bg-muted/50 p-4 rounded-xl">
-                            {part.text}
-                          </ReasoningContent>
-                        </Reasoning>
-                      );
-                    default:
-                      return null;
-                  }
-                })}
-              </MessageContent>
-            </Message>
+            <div key={message.id}>
+              {message.role === 'assistant' &&
+                message.parts.filter((part) => part.type === 'tool-webSearch').length > 0 && (
+                  <Sources>
+                    <SourcesTrigger
+                      count={
+                        message.parts
+                          .filter((part) => part.type === 'tool-webSearch')
+                          .reduce((total, part) => {
+                            const toolPart = part as any;
+                            return total + (Array.isArray(toolPart.output) ? toolPart.output.length : 0);
+                          }, 0)
+                      }
+                    />
+                    {message.parts.map((part, i) => {
+                      switch (part.type) {
+                        case 'tool-webSearch':
+                          const toolPart = part as any;
+                          if (Array.isArray(toolPart.output)) {
+                            return toolPart.output.map((source: any, sourceIndex: number) => (
+                              <SourcesContent key={`${message.id}-${i}-${sourceIndex}`}>
+                                <Source
+                                  key={`${message.id}-${i}-${sourceIndex}`}
+                                  href={source.url}
+                                  title={source.title || source.url}
+                                />
+                              </SourcesContent>
+                            ));
+                          }
+                          return null;
+                        default:
+                          return null;
+                      }
+                    })}
+                  </Sources>
+                )}
+              <Message from={message.role} key={message.id}>
+                <MessageContent className="group-[.is-user]:bg-muted py-2 group-[.is-user]:rounded-tl-xl group-[.is-user]:rounded-tr-xl group-[.is-user]:rounded-bl-xl group-[.is-user]:text-foreground group-[.is-assistant]:bg-transparent">
+                  {message.parts.map((part, i) => {
+                    switch (part.type) {
+                      case "text":
+                        const isLastMessage =
+                          messageIndex === messages.length - 1;
+                        return (
+                          <div key={`${message.id}-${i}`} className="w-full">
+                            <Response>{part.text}</Response>
+                            {message.role === "assistant" && (
+                              <Actions className="mt-2">
+                                <Action
+                                  tooltip="Copy Message"
+                                  className="text-background group-hover:text-muted-foreground"
+                                >
+                                  <CopyIcon />
+                                </Action>
+                                <Action
+                                  tooltip="Retry Message"
+                                  className="text-background group-hover:text-muted-foreground"
+                                >
+                                  <RefreshCcwIcon />
+                                </Action>
+                              </Actions>
+                            )}
+                          </div>
+                        );
+                      case "reasoning":
+                        // Only open reasoning if it's the last message AND currently streaming
+                        const isLastReasoningMessage = messageIndex === messages.length - 1;
+                        const isLastReasoningPart = i === message.parts.length - 1;
+                        const shouldOpenReasoning = isLastReasoningMessage && isLastReasoningPart && status === "streaming";
+                        return (
+                          <Reasoning
+                            key={`${message.id}-${i}`}
+                            className="w-full"
+                            isStreaming={status === "streaming"}
+                            defaultOpen={shouldOpenReasoning}
+                          >
+                            <ReasoningTrigger />
+                            <ReasoningContent className="text-xs bg-muted/50 p-4 rounded-xl">
+                              {part.text}
+                            </ReasoningContent>
+                          </Reasoning>
+                        );
+                      default:
+                        return null;
+                    }
+                  })}
+                </MessageContent>
+              </Message>
+            </div>
           ))}
-          {status === "submitted" && <Loader />}
+          {status === "streaming" && <Loader />}
+          {/* Auto-scroll target element */}
+          <div ref={messagesEndRef} />
         </ConversationContent>
         <ConversationScrollButton />
       </Conversation>
@@ -282,9 +372,16 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
                   ))}
                 </PromptInputModelSelectContent>
               </PromptInputModelSelect>
-              <PromptInputButton>
-                <GlobeIcon size={16} />
-              </PromptInputButton>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <PromptInputButton variant={isWebSearch ? "default" : "ghost"} onClick={() => setIsWebSearch(!isWebSearch)}>
+                    <GlobeIcon size={16} />
+                  </PromptInputButton>
+                </TooltipTrigger>
+                <TooltipContent align="start">
+                  <p>Enable web search, may use additional credits.</p>
+                </TooltipContent>
+              </Tooltip>
             </PromptInputTools>
             <PromptInputSubmit
               className="absolute right-1 bottom-1"

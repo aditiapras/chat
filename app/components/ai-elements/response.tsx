@@ -370,16 +370,21 @@ const components: Options["components"] = {
     }
 
     return (
-      <CodeBlock
-        className={cn("my-4 h-auto bg-muted/20 border-muted", className)}
-        code={code}
-        language={language}
-      >
-        <CodeBlockCopyButton
-          onCopy={() => console.log("Copied code to clipboard")}
-          onError={() => console.error("Failed to copy code to clipboard")}
-        />
-      </CodeBlock>
+      <ScrollArea className="rounded-lg border w-full relative">
+        <div className="absolute top-2 right-2 z-50">
+          <CodeBlockCopyButton
+            onCopy={() => console.log("Copied code to clipboard")}
+            onError={() => console.error("Failed to copy code to clipboard")}
+          />
+        </div>
+        <CodeBlock
+          className={cn("h-auto bg-muted/20", className)}
+          code={code}
+          language={language}
+        >
+        </CodeBlock>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
     );
   },
 };

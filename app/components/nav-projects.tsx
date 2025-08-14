@@ -45,7 +45,7 @@ export function NavProjects({
       <SidebarMenu>
         {threads.map((item) => (
           <SidebarMenuItem key={item.id}>
-            <Tooltip>
+            <Tooltip delayDuration={1000} >
               <SidebarMenuButton asChild>
                 <TooltipTrigger asChild>
                   <Link to={`/chat/${item.id}`}>

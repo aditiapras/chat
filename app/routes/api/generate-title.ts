@@ -1,7 +1,7 @@
 import { getAuth } from "@clerk/react-router/ssr.server";
 import type { Route } from "./+types/generate-title";
 import { prisma } from "~/lib/prisma";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { gateway } from "@ai-sdk/gateway"
 import { generateText } from "ai";
 
 export async function action(args: Route.ActionArgs) {
@@ -17,10 +17,10 @@ export async function action(args: Route.ActionArgs) {
 
   const formData = await request.formData();
   const threadId = formData.get("threadId") as string;
-  const aiResponse = formData.get("aiResponse") as string;
+  const userMessage = formData.get("userMessage") as string;
   const model = formData.get("model") as string;
 
-  if (!threadId || !aiResponse || !model) {
+  if (!threadId || !userMessage || !model) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
@@ -48,13 +48,9 @@ export async function action(args: Route.ActionArgs) {
 
     // Only generate title if it doesn't exist
     if (!thread.title) {
-      const openrouter = createOpenRouter({
-        apiKey: process.env.OPENROUTER_API_KEY,
-      });
-
       const titleResponse = await generateText({
-        model: openrouter.chat(model),
-        prompt: `Create a simple max 7 words title based on this AI response (output only plain text): ${aiResponse.substring(0, 500)}`,
+        model: gateway(model),
+        prompt: `Create a simple max 7 words title based on this user question/message (output only plain text): ${userMessage.substring(0, 500)}`,
       });
 
       // Sanitize and validate title

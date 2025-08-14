@@ -26,10 +26,12 @@ model AIModel {
 model Message {
   id          String   @id @default(uuid())
   content     String
+  reasoning   String?
   role        String
   model       String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  webSearch   String[]
   attachments String[]
   threadId    String?
   Thread      Thread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)

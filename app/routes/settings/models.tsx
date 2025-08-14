@@ -5,7 +5,7 @@ import { Input } from "~/components/ui/input"
 import { Button } from "~/components/ui/button"
 import { Label } from "~/components/ui/label"
 import { Checkbox } from "~/components/ui/checkbox"
-import { ArrowLeft, Brain, Eye, Files, Gem, Pencil } from "lucide-react"
+import { ArrowLeft, Brain, Eye, Files, Gem, Globe, Pencil, Settings } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip"
 import {
     AlertDialog,
@@ -35,25 +35,27 @@ export const meta: Route.MetaFunction = () => {
 export const action = async ({ request }: { request: Request }) => {
     const formData = await request.formData()
     const model = formData.get("model")
-    const code = formData.get("code")
+    const modelId = formData.get("modelId")
     const description = formData.get("description")
     const provider = formData.get("provider")
     const supportImage = formData.get("supportImage")
     const supportFile = formData.get("supportFile")
+    const supportWebSearch = formData.get("supportWebSearch")
     const hasReasoning = formData.get("hasReasoning")
     const isPremium = formData.get("isPremium")
 
-    console.log(model, code, description, provider, supportImage, supportFile, hasReasoning, isPremium)
+    console.log(model, modelId, description, provider, supportImage, supportFile, supportWebSearch, hasReasoning, isPremium)
 
     try {
         await prisma.aIModel.create({
             data: {
                 name: model as string,
-                modelId: code as string,
+                modelId: modelId as string,
                 description: description as string,
                 provider: provider as string,
                 supportImage: supportImage === "on" ? true : false,
                 supportFile: supportFile === "on" ? true : false,
+                supportWebSearch: supportWebSearch === "on" ? true : false,
                 hasReasoning: hasReasoning === "on" ? true : false,
                 isPremium: isPremium === "on" ? true : false,
             },
@@ -101,39 +103,45 @@ export default function Model({ loaderData }: Route.ComponentProps) {
                                 Please fill in the form below to add a new model.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
-
                         <fetcher.Form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="model">Model</Label>
-                                <Input type="text" name="model" placeholder="Model" />
+                                <Input type="text" name="model" required placeholder="Model" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="code">Model Code</Label>
-                                <Input type="text" name="code" placeholder="Model Code" />
+                                <Label htmlFor="modelId">Model ID</Label>
+                                <Input type="text" name="modelId" required placeholder="Model ID" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="description">Model Description</Label>
-                                <Textarea name="description" placeholder="Model Description" />
+                                <Textarea name="description" required placeholder="Model Description" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="provider">Provider</Label>
-                                <Input type="text" name="provider" placeholder="Provider" />
+                                <Input type="text" name="provider" required placeholder="Provider" />
                             </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox name="supportImage" id="supportImage" />
-                                <Label htmlFor="supportImage">Support Image</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox name="supportFile" id="supportFile" />
-                                <Label htmlFor="supportFile">Support File</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox name="hasReasoning" id="hasReasoning" />
-                                <Label htmlFor="hasReasoning">Has Reasoning</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox name="isPremium" id="isPremium" />
-                                <Label htmlFor="isPremium">Is Premium</Label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <p className="col-span-2">Capabilities</p>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox name="supportImage" id="supportImage" />
+                                    <Label htmlFor="supportImage">Support Image</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox name="supportFile" id="supportFile" />
+                                    <Label htmlFor="supportFile">Support File</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox name="supportWebSearch" id="supportWebSearch" />
+                                    <Label htmlFor="supportWebSearch">Support Websearch</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox name="hasReasoning" id="hasReasoning" />
+                                    <Label htmlFor="hasReasoning">Has Reasoning</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox name="isPremium" id="isPremium" />
+                                    <Label htmlFor="isPremium">Is Premium</Label>
+                                </div>
                             </div>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -152,53 +160,65 @@ export default function Model({ loaderData }: Route.ComponentProps) {
                                     <CardTitle>{model.name}</CardTitle>
                                     {model.isPremium && <Gem className="size-4" />}
                                 </div>
-                                <Button variant="outline" size="icon"><Pencil /></Button>
+                                <p className="text-xs text-muted-foreground">{model.provider}</p>
                             </div>
                             <Tooltip>
-
                                 <CardDescription className="text-sm mt-2 text-left line-clamp-2">{model.description}</CardDescription>
-
-
                             </Tooltip>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex items-center gap-2">
-                                {model.hasReasoning &&
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                            <div className="rounded-full p-2 border bg-pink-200">
-                                                <Brain className="size-4" />
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Has reasoning capabilities</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                }
-                                {model.supportImage &&
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                            <div className="rounded-full p-2 border bg-green-200">
-                                                <Eye className="size-4" />
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Supports image</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                }
-                                {model.supportFile &&
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                            <div className="rounded-full p-2 border bg-blue-200">
-                                                <Files className="size-4" />
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Supports file</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                }
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    {model.hasReasoning &&
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <div className="rounded-full p-2 border bg-pink-200">
+                                                    <Brain className="size-4" />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Has reasoning capabilities</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    }
+                                    {model.supportImage &&
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <div className="rounded-full p-2 border bg-green-200">
+                                                    <Eye className="size-4" />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Supports image</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    }
+                                    {model.supportFile &&
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <div className="rounded-full p-2 border bg-blue-200">
+                                                    <Files className="size-4" />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Supports file</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    }
+                                    {model.supportWebSearch &&
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <div className="rounded-full p-2 border bg-purple-200">
+                                                    <Globe className="size-4" />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Supports web search</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    }
+                                </div>
+                                <Button variant="ghost" size="icon"><Settings /></Button>
                             </div>
                         </CardContent>
                     </Card>

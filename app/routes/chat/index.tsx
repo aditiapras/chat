@@ -28,6 +28,8 @@ export const meta: Route.MetaFunction = () => {
 export async function loader(args: Route.LoaderArgs) {
   const { sessionClaims } = await getAuth(args);
 
+  // NOTE: Model query needed for initial chat creation in index page
+  // Could be optimized by sharing with parent layout in future
   const model = await prisma.aIModel.findMany({
     select: {
       name: true,
@@ -38,12 +40,13 @@ export async function loader(args: Route.LoaderArgs) {
       provider: "asc",
     },
   });
+
   return { sessionClaims, model };
 }
 
 export default function Page({ loaderData }: Route.ComponentProps) {
   const [prompt, setPrompt] = React.useState("");
-  const [model, setModel] = React.useState(loaderData.model[0].modelId);
+  const [model, setModel] = React.useState(loaderData.model[0]?.modelId);
   const [webSearch, setWebSearch] = React.useState(false);
   const navigate = useNavigate();
 
@@ -61,7 +64,7 @@ export default function Page({ loaderData }: Route.ComponentProps) {
       });
       if (create.ok) {
         const { threadId } = await create.json();
-        
+
         // React Router 7 will automatically revalidate layout data after navigation
         // The new thread will appear in sidebar via loader data
         navigate(`/chat/${threadId}`, {
