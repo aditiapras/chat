@@ -112,12 +112,14 @@ export type ReasoningTriggerProps = ComponentProps<
   typeof CollapsibleTrigger
 > & {
   title?: string;
+  isLoading?: boolean;
 };
 
 export const ReasoningTrigger = memo(
   ({
     className,
     title = 'Reasoning',
+    isLoading = false,
     children,
     ...props
   }: ReasoningTriggerProps) => {
@@ -133,8 +135,10 @@ export const ReasoningTrigger = memo(
       >
         {children ?? (
           <>
-            <BrainIcon className="size-4" />
-            {isStreaming || duration === 0 ? (
+            <BrainIcon className={cn("size-4", isLoading && "animate-pulse")} />
+            {isLoading ? (
+              <p>Thinking...</p>
+            ) : isStreaming || duration === 0 ? (
               <p>Thinking...</p>
             ) : (
               <p>Thought for {duration} seconds</p>

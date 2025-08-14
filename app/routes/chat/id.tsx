@@ -43,7 +43,11 @@ import {
   SourcesContent,
   SourcesTrigger,
 } from "~/components/ai-elements/source";
-import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 
 export const meta: Route.MetaFunction = ({ loaderData }: Route.MetaArgs) => {
   const title = loaderData?.title?.title || "New Chat";
@@ -70,7 +74,7 @@ export async function loader(args: Route.LoaderArgs) {
         provider: "asc",
       },
     }),
-    
+
     // Single query to get thread data
     prisma.thread.findUnique({
       where: {
@@ -80,7 +84,7 @@ export async function loader(args: Route.LoaderArgs) {
         title: true,
       },
     }),
-    
+
     // Optimized messages query with content length limit
     prisma.message.findMany({
       where: {
@@ -90,6 +94,7 @@ export async function loader(args: Route.LoaderArgs) {
         id: true,
         role: true,
         content: true,
+        reasoning: true, // Include reasoning for persistent display
         model: true, // Include model for selectedModel extraction
         webSearch: true, // Include webSearch for sources
         createdAt: true, // For ordering
@@ -103,19 +108,22 @@ export async function loader(args: Route.LoaderArgs) {
   ]);
 
   // Extract selectedModel from last assistant message
-  const selectedModel = messages
-    .filter(msg => msg.role === "assistant")
-    .slice(-1)[0] || null;
+  const selectedModel =
+    messages.filter((msg) => msg.role === "assistant").slice(-1)[0] || null;
   return { models, selectedModel, params, messages, title };
 }
 
 export default function Threads({ loaderData }: Route.ComponentProps) {
   const location = useLocation();
   const [model, setModel] = useState(
-    location.state?.model || loaderData.selectedModel?.model || loaderData.models[0].modelId
+    location.state?.model ||
+      loaderData.selectedModel?.model ||
+      loaderData.models[0].modelId
   );
   const [prompt, setPrompt] = useState(location.state?.prompt || "");
-  const [isWebSearch, setIsWebSearch] = useState(location.state?.webSearch || false);
+  const [isWebSearch, setIsWebSearch] = useState(
+    location.state?.webSearch || false
+  );
   const { sendMessage, messages, status, setMessages, stop } = useChat({});
   const isInitial = useRef(true);
   const [currentTitle, setCurrentTitle] = useState(
@@ -126,7 +134,8 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
 
   // Fix: Sync model state with selectedModel when navigating between pages
   useEffect(() => {
-    const newModel = loaderData.selectedModel?.model || loaderData.models[0].modelId;
+    const newModel =
+      loaderData.selectedModel?.model || loaderData.models[0].modelId;
     if (newModel !== model) {
       setModel(newModel);
     }
@@ -134,8 +143,8 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
 
   // Auto-scroll to bottom when messages change or streaming
   const scrollToBottom = (instant = false) => {
-    messagesEndRef.current?.scrollIntoView({ 
-      behavior: instant ? "instant" : "smooth" 
+    messagesEndRef.current?.scrollIntoView({
+      behavior: instant ? "instant" : "smooth",
     });
   };
 
@@ -167,16 +176,29 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     setMessages(
-      loaderData.messages.map((message) => ({
-        id: message.id,
-        role: message.role as "user" | "system" | "assistant",
-        parts: [
-          {
-            type: "text",
-            text: message.content,
-          },
-        ],
-      }))
+      loaderData.messages.map((message) => {
+        const parts: any[] = [];
+
+        // Add reasoning part FIRST if available for assistant messages
+        if (message.role === "assistant" && message.reasoning) {
+          parts.push({
+            type: "reasoning" as const,
+            text: message.reasoning,
+          });
+        }
+
+        // Then add the main content
+        parts.push({
+          type: "text" as const,
+          text: message.content,
+        });
+
+        return {
+          id: message.id,
+          role: message.role as "user" | "system" | "assistant",
+          parts,
+        };
+      })
     );
   }, [loaderData.messages]);
 
@@ -198,10 +220,10 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === "assistant") {
         // Find the user message that triggered this AI response
-        const userMessage = messages.find((msg, index) => 
-          msg.role === "user" && index < messages.length - 1
+        const userMessage = messages.find(
+          (msg, index) => msg.role === "user" && index < messages.length - 1
         );
-        
+
         if (userMessage && status !== "streaming") {
           const userContent = userMessage.parts
             .filter((part) => part.type === "text")
@@ -244,33 +266,41 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
         <ConversationContent>
           {messages.map((message, messageIndex) => (
             <div key={message.id}>
-              {message.role === 'assistant' &&
-                message.parts.filter((part) => part.type === 'tool-webSearch').length > 0 && (
+              {message.role === "assistant" &&
+                message.parts.filter((part) => part.type === "tool-webSearch")
+                  .length > 0 && (
                   <Sources>
                     <SourcesTrigger
-                      count={
-                        message.parts
-                          .filter((part) => part.type === 'tool-webSearch')
-                          .reduce((total, part) => {
-                            const toolPart = part as any;
-                            return total + (Array.isArray(toolPart.output) ? toolPart.output.length : 0);
-                          }, 0)
-                      }
+                      count={message.parts
+                        .filter((part) => part.type === "tool-webSearch")
+                        .reduce((total, part) => {
+                          const toolPart = part as any;
+                          return (
+                            total +
+                            (Array.isArray(toolPart.output)
+                              ? toolPart.output.length
+                              : 0)
+                          );
+                        }, 0)}
                     />
                     {message.parts.map((part, i) => {
                       switch (part.type) {
-                        case 'tool-webSearch':
+                        case "tool-webSearch":
                           const toolPart = part as any;
                           if (Array.isArray(toolPart.output)) {
-                            return toolPart.output.map((source: any, sourceIndex: number) => (
-                              <SourcesContent key={`${message.id}-${i}-${sourceIndex}`}>
-                                <Source
+                            return toolPart.output.map(
+                              (source: any, sourceIndex: number) => (
+                                <SourcesContent
                                   key={`${message.id}-${i}-${sourceIndex}`}
-                                  href={source.url}
-                                  title={source.title || source.url}
-                                />
-                              </SourcesContent>
-                            ));
+                                >
+                                  <Source
+                                    key={`${message.id}-${i}-${sourceIndex}`}
+                                    href={source.url}
+                                    title={source.title || source.url}
+                                  />
+                                </SourcesContent>
+                              )
+                            );
                           }
                           return null;
                         default:
@@ -308,18 +338,26 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
                           </div>
                         );
                       case "reasoning":
-                        // Only open reasoning if it's the last message AND currently streaming
-                        const isLastReasoningMessage = messageIndex === messages.length - 1;
-                        const isLastReasoningPart = i === message.parts.length - 1;
-                        const shouldOpenReasoning = isLastReasoningMessage && isLastReasoningPart && status === "streaming";
+                        // Check if this is currently streaming reasoning
+                        const isLastReasoningMessage =
+                          messageIndex === messages.length - 1;
+                        const isLastReasoningPart =
+                          i === message.parts.length - 1;
+                        const isStreamingReasoning =
+                          isLastReasoningMessage &&
+                          isLastReasoningPart &&
+                          status === "streaming";
+
                         return (
                           <Reasoning
                             key={`${message.id}-${i}`}
                             className="w-full"
-                            isStreaming={status === "streaming"}
-                            defaultOpen={shouldOpenReasoning}
+                            isStreaming={isStreamingReasoning}
+                            defaultOpen={false} // Always default to closed
                           >
-                            <ReasoningTrigger />
+                            <ReasoningTrigger
+                              isLoading={isStreamingReasoning}
+                            />
                             <ReasoningContent className="text-xs bg-muted/50 p-4 rounded-xl">
                               {part.text}
                             </ReasoningContent>
@@ -374,7 +412,10 @@ export default function Threads({ loaderData }: Route.ComponentProps) {
               </PromptInputModelSelect>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <PromptInputButton variant={isWebSearch ? "default" : "ghost"} onClick={() => setIsWebSearch(!isWebSearch)}>
+                  <PromptInputButton
+                    variant={isWebSearch ? "default" : "ghost"}
+                    onClick={() => setIsWebSearch(!isWebSearch)}
+                  >
                     <GlobeIcon size={16} />
                   </PromptInputButton>
                 </TooltipTrigger>

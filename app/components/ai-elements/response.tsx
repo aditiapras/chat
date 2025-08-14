@@ -8,12 +8,70 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { cn } from "~/lib/utils";
 import "katex/dist/katex.min.css";
+
+// Ensure KaTeX CSS is properly loaded
+if (typeof window !== "undefined") {
+  // Check if KaTeX CSS is loaded
+  const katexCSS = document.querySelector('link[href*="katex"]');
+  if (!katexCSS) {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css";
+    document.head.appendChild(link);
+  }
+}
 import hardenReactMarkdown from "harden-react-markdown";
 import { CodeBlock, CodeBlockCopyButton } from "./code-block";
 import { Button } from "../ui/button";
 import { CopyIcon, Download, Expand } from "lucide-react";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { MathRenderer } from "../math-renderer";
+
+/**
+ * Preprocesses LaTeX formulas to ensure they are properly wrapped for KaTeX rendering
+ */
+function preprocessLatex(text: string): string {
+  if (!text || typeof text !== "string") {
+    return text;
+  }
+
+  let result = text;
+
+  // Handle expressions in square brackets that look like formulas (e.g., [ L = \frac{...} ])
+  result = result.replace(
+    /\[\s*([^[\]]*\\[a-zA-Z]+[^[\]]*)\s*\]/g,
+    (match, formula) => {
+      return `$$${formula.trim()}$$`;
+    }
+  );
+
+  // Fix malformed wrapped formulas like $formula $$
+  result = result.replace(/\$([^$]+)\s*\$\$/g, (match, formula) => {
+    return `$$${formula.trim()}$$`;
+  });
+
+  // Handle the specific problematic pattern from the screenshot
+  // Convert: $L = 1000\,$\pi$\,$\text{cm}$\,$\approx$ 1000 $\times$ 3.14159 = 3\,141.6\,$\text{cm}$\,
+  // To proper LaTeX
+  result = result.replace(
+    /\$([^$]*)\$\\\,\$([^$]*)\$\\\,\$([^$]*)\$\\\,\$([^$]*)\$/g,
+    (match, p1, p2, p3, p4) => {
+      return `$${p1}\\,${p2}\\,${p3}\\,${p4}$`;
+    }
+  );
+
+  // Handle sequences like $text$ $symbol$ $text$
+  result = result.replace(
+    /\$([^$]+)\$\s+\$([^$]+)\$\s+\$([^$]+)\$/g,
+    "$$$1 $2 $3$$"
+  );
+
+  // Handle pairs like $text$ $symbol$
+  result = result.replace(/\$([^$]+)\$\s+\$([^$]+)\$/g, "$$$1 $2$$");
+
+  return result;
+}
 
 /**
  * Parses markdown text and removes incomplete tokens to prevent partial rendering
@@ -178,6 +236,32 @@ export type ResponseProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 const components: Options["components"] = {
+  // Simplified code component without custom math handling
+  code: ({ node, children, className, ...props }: any) => {
+    const inline = props.inline;
+
+    // Regular code handling
+    if (inline) {
+      return (
+        <code
+          className={cn(
+            "rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm",
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </code>
+      );
+    }
+
+    return (
+      <code className={className} {...props}>
+        {children}
+      </code>
+    );
+  },
+
   ol: ({ node, children, className, ...props }) => (
     <ol className={cn("ml-3 list-outside list-decimal", className)} {...props}>
       {children}
@@ -330,23 +414,6 @@ const components: Options["components"] = {
       {children}
     </blockquote>
   ),
-  code: ({ node, className, ...props }) => {
-    const inline = node?.position?.start.line === node?.position?.end.line;
-
-    if (!inline) {
-      return <code className={className} {...props} />;
-    }
-
-    return (
-      <code
-        className={cn(
-          "rounded bg-pink-100 border border-pink-200 px-1.5 py-0.5 font-mono text-sm",
-          className
-        )}
-        {...props}
-      />
-    );
-  },
   pre: ({ node, className, children }) => {
     let language = "javascript";
 
@@ -381,8 +448,7 @@ const components: Options["components"] = {
           className={cn("h-auto bg-muted/20", className)}
           code={code}
           language={language}
-        >
-        </CodeBlock>
+        ></CodeBlock>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
     );
@@ -401,10 +467,17 @@ export const Response = memo(
     ...props
   }: ResponseProps) => {
     // Parse the children to remove incomplete markdown tokens if enabled
-    const parsedChildren =
-      typeof children === "string" && shouldParseIncompleteMarkdown
-        ? parseIncompleteMarkdown(children)
-        : children;
+    let parsedChildren = children;
+
+    if (typeof children === "string") {
+      // First preprocess LaTeX formulas
+      parsedChildren = preprocessLatex(children);
+
+      // Then parse incomplete markdown if enabled
+      if (shouldParseIncompleteMarkdown) {
+        parsedChildren = parseIncompleteMarkdown(parsedChildren);
+      }
+    }
 
     return (
       <div
@@ -416,8 +489,25 @@ export const Response = memo(
       >
         <HardenedMarkdown
           components={components}
-          rehypePlugins={[rehypeKatex]}
-          remarkPlugins={[remarkGfm, remarkMath]}
+          rehypePlugins={[
+            [
+              rehypeKatex,
+              {
+                strict: false,
+                throwOnError: false,
+                trust: true,
+              },
+            ],
+          ]}
+          remarkPlugins={[
+            remarkGfm,
+            [
+              remarkMath,
+              {
+                singleDollarTextMath: true,
+              },
+            ],
+          ]}
           {...options}
         >
           {parsedChildren}

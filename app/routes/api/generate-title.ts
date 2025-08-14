@@ -1,7 +1,7 @@
 import { getAuth } from "@clerk/react-router/ssr.server";
 import type { Route } from "./+types/generate-title";
 import { prisma } from "~/lib/prisma";
-import { gateway } from "@ai-sdk/gateway"
+import { gateway } from "@ai-sdk/gateway";
 import { generateText } from "ai";
 
 export async function action(args: Route.ActionArgs) {

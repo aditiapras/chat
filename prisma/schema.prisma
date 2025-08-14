@@ -25,8 +25,8 @@ model AIModel {
 
 model Message {
   id          String   @id @default(uuid())
-  content     String
-  reasoning   String?
+  content     String   @db.Text
+  reasoning   String?  @db.Text
   role        String
   model       String
   createdAt   DateTime @default(now())
